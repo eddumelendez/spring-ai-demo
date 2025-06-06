@@ -1,18 +1,12 @@
 package com.example.demogenai;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.evaluation.FactCheckingEvaluator;
-import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.evaluation.EvaluationRequest;
 import org.springframework.ai.evaluation.EvaluationResponse;
-import org.springframework.ai.ollama.OllamaChatModel;
-import org.springframework.ai.ollama.api.OllamaApi;
-import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -26,33 +20,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(classes = { ContainersConfiguration.class, IngestionConfiguration.class },
 		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		properties = { "logging.level.org.springframework.ai.chat.client.advisor=DEBUG" })
+		properties = { "logging.level.org.springframework.ai.chat.client.advisor=DEBUG",
+				"logging.level.org.springframework.ai.chat.client.advisor.vectorstore=DEBUG" })
 class TestcontainersHelpControllerTest {
 
-	static final String BESPOKE_MINICHECK = "bespoke-minicheck:7b";
+	static final String BESPOKE_MINICHECK = "hf.co/nvhf/minicheck-flan-t5-large-q6_k-gguf";
 
 	@LocalServerPort
 	private int port;
-
-	@Autowired
-	private OllamaApi ollamaApi;
 
 	@Autowired
 	private VectorStore vectorStore;
 
 	@Autowired
 	private ChatClient.Builder chatClientBuilder;
-
-	private ChatClient.Builder factCheckChatClientBuilder;
-
-	@BeforeEach
-	void setUp() {
-		ChatModel chatModel = OllamaChatModel.builder()
-			.ollamaApi(this.ollamaApi)
-			.defaultOptions(OllamaOptions.builder().model(BESPOKE_MINICHECK).numPredict(2).temperature(0.0d).build())
-			.build();
-		this.factCheckChatClientBuilder = ChatClient.builder(chatModel).defaultAdvisors(new SimpleLoggerAdvisor());
-	}
 
 	@Test
 	void contextLoads() {
@@ -80,8 +61,7 @@ class TestcontainersHelpControllerTest {
 	}
 
 	private void assertFactCheck(String question, String answer) {
-		FactCheckingEvaluator factCheckingEvaluator = FactCheckingEvaluator
-			.forBespokeMinicheck(this.factCheckChatClientBuilder);
+		FactCheckingEvaluator factCheckingEvaluator = new FactCheckingEvaluator(this.chatClientBuilder);
 		EvaluationResponse evaluate = factCheckingEvaluator.evaluate(new EvaluationRequest(docs(question), answer));
 		assertThat(evaluate.isPass()).isTrue();
 	}
