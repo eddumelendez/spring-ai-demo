@@ -13,7 +13,7 @@ public class GrafanaContainerConfiguration {
 	@ServiceConnection
 	@RestartScope
 	LgtmStackContainer lgtmContainer() {
-		return new LgtmStackContainer("grafana/otel-lgtm:0.7.1");
+		return new LgtmStackContainer("grafana/otel-lgtm:0.10.0");
 	}
 
 }
