@@ -24,8 +24,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 				"logging.level.org.springframework.ai.chat.client.advisor.vectorstore=DEBUG" })
 class TestcontainersHelpControllerTest {
 
-	static final String BESPOKE_MINICHECK = "hf.co/nvhf/minicheck-flan-t5-large-q6_k-gguf";
-
 	@LocalServerPort
 	private int port;
 
