@@ -5,6 +5,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -38,7 +39,10 @@ public class TestcontainersHelpController {
 
 	static ChatClient.CallResponseSpec callResponseSpec(ChatClient chatClient, VectorStore vectorStore,
 			String question) {
-		return chatClient.prompt().advisors(new QuestionAnswerAdvisor(vectorStore)).user(question).call();
+		QuestionAnswerAdvisor questionAnswerAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
+			.searchRequest(SearchRequest.builder().topK(1).build())
+			.build();
+		return chatClient.prompt().advisors(questionAnswerAdvisor).user(question).call();
 	}
 
 }
